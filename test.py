@@ -2,13 +2,13 @@ import lisakovlib as lskv
 
 lskv.init()
 
-lskv.floor(start=-20, end=20)
+lskv.plane(len=25)
 
-a = lskv.m('$m_1$', 10)
-b = lskv.m('$m_2$', 0)
-c = lskv.m('$m_3$', -10)
+a = lskv.box('$m_1$', 0)
+b = lskv.box('$m_2$', 10)
+c = lskv.box('$m_3$', 20)
 
 lskv.rope(a, b)
 lskv.rope(b, c)
 
-lskv.render(start=-10, end=10)
+lskv.render()
