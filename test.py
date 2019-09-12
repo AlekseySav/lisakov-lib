@@ -2,13 +2,18 @@ import lisakovlib as lskv
 
 lskv.init()
 
-lskv.plane(len=25)
+floor = lskv.plane(len=25)
 
-a = lskv.box('$m_1$', 0)
-b = lskv.box('$m_2$', 10)
-c = lskv.box('$m_3$', 20)
+a = lskv.box((0, 0), text="$m_1$")
+b = lskv.box((10, 0))
+c = lskv.box((20, 10), angle=170, text="$M$")
 
-lskv.rope(a, b)
-lskv.rope(b, c)
+p = lskv.plane(pos=(20, 13), len=5, angle=180)
+
+lskv.arrow((15, 1.5), text='$F_1$')
+
+lskv.rope(a, b, c, p)
+
+lskv.box(lskv.margin(c, y=1, x=0.8, absolute=False), text="$m$")
 
 lskv.render()

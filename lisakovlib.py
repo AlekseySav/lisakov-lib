@@ -1,25 +1,20 @@
 #
 # lisakov lib
 #
-# it is a super lib, which is able
-# to draw some standard things from physics
+# Copyright blablabla ...
 #
 
+from sys import stderr
 from math import sin, cos, pi
 from matplotlib import pyplot as plt
 from matplotlib.patches import Rectangle
 from matplotlib import rcParams
 
-floor_y = 0
-hl = 1.5 # Hatch Length
-ytt = 3 * 0.41 # y top text
-
 # consts
 LW = 3
 EC = 'k'
-COLOR = 'none'
+COLOR = 'white'
 TALIGN = 'center'
-stderr = 2  # stderr file
 
 objects = []
 
@@ -32,18 +27,32 @@ def torad(_D):
 # die - noreturn print error function
 #
 def die(err):
-    f = open(stderr, "wt")
-    #f.write("Lisacov-lib: fatal error: %s\n" % err)
-    f.write("Lisacov-lib: \033[1;31mfatal error: \033[0m%s\n" % err)
+    #stderr.write("Lisacov-lib: fatal error: %s\n" % err)
+    stderr.write("Lisacov-lib: \033[1;31mfatal error: \033[0m%s\n" % err)
     exit(1)
 
 #
 # push_object - create an object and return a pointer to it
 #
-def push_object(name, x, y, width, height, angle):
+def push_object(name, x, y, width, height, angle) -> int:
     objects.append([name, x, y, width, height, angle])
     return len(objects) - 1
 
+#
+# functions for work with objects
+#
+def get_type(i) -> str:
+    return objects[i][0]
+def get_x(i) -> int:
+    return objects[i][1]
+def get_y(i) -> int:
+    return objects[i][2]
+def get_width(i) -> int:
+    return objects[i][3]
+def get_height(i) -> int:
+    return objects[i][4]
+def get_angle(i) -> float:
+    return objects[i][5]
 
 #
 # init - initialize library
@@ -58,6 +67,8 @@ def init(fs=15):
 #
 def render(x0=0, y0=0, x1=0, y1=0):
     for i in objects:
+        #xlen = xlen * cos(r) + ylen * sin(r)
+        #ylen = ylen * cos(r) + xlen * sin(r)
         if i[1] < x0:
             x0 = i[1]
         if i[2] - i[4] < y0:
@@ -83,54 +94,113 @@ def render(x0=0, y0=0, x1=0, y1=0):
 #
 # draw plane
 #
-def plane(x=0, y=0, len=0, angle=0, lw=LW, wide=3):
-    reverse = False
-    while(angle >= 180):
-        angle -= 180
-        reverse = True
+def plane(pos=(0, 0), len=0, angle=0, lw=LW, wide=1):
+    x = pos[0]
+    y = pos[1]
+    if(pos.__len__() > 2):
+        angle = pos[2]
 
     r = torad(angle)
     xlen = len * cos(r)
     ylen = len * sin(r)
 
-    ax.plot([x, x + xlen], [y, y + ylen], 'k', lw=lw, zorder=1)
-
-    if(reverse):
-        plane = Rectangle((x, y), len, wide, \
-            angle=angle, lw=0, ec=EC, hatch='///',facecolor=COLOR)
-    else:
-        plane = Rectangle((x + wide * sin(r), y - wide * cos(r)), len, wide, \
-            angle=angle, lw=0, ec=EC, hatch='///',facecolor=COLOR)
+    ax.plot([x, x + xlen], [y, y + ylen], 'k', lw=lw, zorder=2)
+    x = x + wide * sin(r)
+    y = y - wide * cos(r)
+    plane = Rectangle((x, y), len, wide, \
+        angle=angle, lw=0, ec=EC, hatch='///', color=COLOR, zorder=2)
     ax.add_patch(plane)
 
-    return push_object('plane', x, y, len, lw + wide, angle)
+    return push_object('plane', x, y + wide, len, wide, angle)
 
 #
 # draw box
 #
-def box(text, x, lw=LW, xlen=5, ylen=3):
-    m = Rectangle((x, floor_y), xlen, ylen, \
-        linewidth=lw, ec=EC, facecolor=COLOR)
+def box(pos, text="", lw=LW, xlen=5, ylen=3, angle=0, textpos=(0, 0)):
+    x = pos[0]
+    y = pos[1]
+    if(pos.__len__() > 2):
+        angle = pos[2]
+
+    m = Rectangle((x, y), xlen, ylen, \
+        angle=angle, linewidth=lw, ec=EC, color=COLOR, zorder=3)
     ax.add_patch(m)
-    ax.text(x + xlen / 2, ytt, text, ha=TALIGN)
 
-    return push_object("m", x, ylen, x + xlen, floor_y, 0)
+    r = torad(angle)
 
-def rope(a, b, lw=LW):
+    ax.text(x + xlen * cos(r) / 2 + textpos[0], \
+        y + (ylen * cos(r) + xlen * sin(r)) / 2 + textpos[1], text, \
+            ha=TALIGN, zorder=3)
+
+    return push_object("box", x, y + ylen, xlen, ylen, angle)
+
+#
+# draw arrow and its naming
+#
+def arrow(pos, len=5, lw=LW, text="", angle=0, hw=0.3, textpos=(0, 0)):
+    x = pos[0]
+    y = pos[1]
+    if(pos.__len__() > 2):
+        angle = pos[2]
+
+    r = torad(angle)
+    xl = len * cos(r)
+    yl = len * sin(r)
+
+    plt.arrow(x, y, xl, yl, fc='k', lw=lw, head_width=hw)
+    ax.text(x + xl + textpos[0], y + yl + 0.5 + textpos[1], text, ha='right')
+    return push_object("arrow", x, y, len, lw, angle)
+
+#
+# function, used by library for rope
+#
+def rope2(a, b, lw=LW):
     if(a >= len(objects) or b >= len(objects)):
         die("uncorrect objects")
-    ax.plot([objects[a][3], objects[b][1]], \
-        [(objects[a][4] + objects[a][2]) / 2, (objects[b][4] + objects[b][2]) / 2], \
-        '-k', lw=lw)
+        
+    acx = get_x(a) + (get_width(a) * cos(torad(get_angle(a))) + \
+        get_height(a) * sin(torad(get_angle(a)))) / 2
+ 
+    acy = get_y(a) - get_height(a) + (get_height(a) * cos(torad(get_angle(a))) + \
+        get_width(a) * sin(torad(get_angle(a)))) / 2
 
+    bcx = get_x(b) + (get_width(b) * cos(torad(get_angle(b))) + \
+        get_height(b) * sin(torad(get_angle(b)))) / 2
 
+    bcy = get_y(b) - get_height(b) + (get_height(b) * cos(torad(get_angle(b))) + \
+        get_width(b) * sin(torad(get_angle(b)))) / 2
+
+    ax.plot([acx, bcx], \
+        [acy, bcy], \
+        '-k', lw=lw, zorder=1)
 
 #
-# rest actions
+# draw a line between pairs of objects
 #
-def m2(x1=0, lw=3, bh = 3, bl = 5):
-    Fl = 5
-    ### Force (applied to m1)
-    plt.arrow(x1+bl, bh/2, Fl, 0, fc='k', lw=lw,
-            length_includes_head=True, head_width=.4)
-#    ax.text(x1+bl+Fl, bh/2+1,'$\\vv{\hspace{-4pt}F\hspace{2pt}}$', ha='right')
+def rope(*L, lw=LW):
+    for i in range(len(L) - 1):
+        rope2(L[i], L[i + 1], lw=lw)
+
+#
+# convert coordinates:
+# offset from object -> absolute coordinates
+#
+def margin(obj, x=0, y=0, absolute=True):
+    x1 = get_x(obj)
+    y1 = get_y(obj) - get_height(obj)
+    angle = get_angle(obj)
+    r = torad(angle)
+
+    if(not absolute):
+        x *= get_width(obj)
+        y *= get_height(obj)
+
+
+    x1 += x * cos(r)
+    y1 -= y * cos(r)
+    x1 += y * sin(r)
+    y1 += x * sin(r)
+    
+    if(angle):
+        return (x1, y1, angle)
+    return (x1, y1)
