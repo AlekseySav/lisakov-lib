@@ -1,19 +1,11 @@
 import lisakovlib as lskv
+from lisakovlib import margin, get_height
 
 lskv.init()
 
-floor = lskv.plane(len=25)
+lskv.plane(len=15)
+w = lskv.wedge((1, 0), len=15)
 
-a = lskv.box((0, 0), text="$m_1$")
-b = lskv.box((10, 0))
-c = lskv.box((20, 10), angle=170, text="$M$")
+lskv.box(margin(w, 0.3, 0, absolute=False), text="$m_2$", textpos=(-0.4, -0.2))
 
-p = lskv.plane(pos=(20, 13), len=5, angle=180)
-
-lskv.arrow((15, 1.5), text='$F_1$')
-
-lskv.rope(a, b, c, p)
-
-lskv.box(lskv.margin(c, y=1, x=0.8, absolute=False), text="$m$")
-
-lskv.render()
+lskv.render(y1=10)

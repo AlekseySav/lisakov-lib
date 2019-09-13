@@ -7,7 +7,7 @@
 from sys import stderr
 from math import sin, cos, pi
 from matplotlib import pyplot as plt
-from matplotlib.patches import Rectangle
+from matplotlib.patches import Rectangle, Polygon
 from matplotlib import rcParams
 
 # consts
@@ -42,16 +42,28 @@ def push_object(name, x, y, width, height, angle) -> int:
 # functions for work with objects
 #
 def get_type(i) -> str:
+    if(i >= len(objects)):
+        die("invalid object")
     return objects[i][0]
 def get_x(i) -> int:
+    if(i >= len(objects)):
+        die("invalid object")
     return objects[i][1]
 def get_y(i) -> int:
+    if(i >= len(objects)):
+        die("invalid object")
     return objects[i][2]
 def get_width(i) -> int:
+    if(i >= len(objects)):
+        die("invalid object")
     return objects[i][3]
 def get_height(i) -> int:
+    if(i >= len(objects)):
+        die("invalid object")
     return objects[i][4]
 def get_angle(i) -> float:
+    if(i >= len(objects)):
+        die("invalid object")
     return objects[i][5]
 
 #
@@ -66,17 +78,23 @@ def init(fs=15):
 # render - show printed objects
 #
 def render(x0=0, y0=0, x1=0, y1=0):
-    for i in objects:
-        #xlen = xlen * cos(r) + ylen * sin(r)
-        #ylen = ylen * cos(r) + xlen * sin(r)
-        if i[1] < x0:
-            x0 = i[1]
-        if i[2] - i[4] < y0:
-            y0 = i[2] - i[4]
-        if i[1] + i[3] > x1:
-            x1 = i[1] + i[3]
-        if i[2] > y1:
-            y1 = i[2]
+    for i in range(len(objects)):
+        x = get_x(i)
+        y = get_y(i)
+        xlen = get_width(i)
+        ylen = get_height(i)
+        r = torad(get_angle(i))
+
+        xlen = xlen * cos(r) + ylen * sin(r)
+        ylen = ylen * cos(r) + xlen * sin(r)
+        if x < x0:
+            x0 = x
+        if y - ylen < y0:
+            y0 = y - ylen
+        if x + xlen > x1:
+            x1 = x + xlen
+        if y > y1:
+            y1 = y
 
     x0 -= 1
     y0 -= 1
@@ -92,7 +110,7 @@ def render(x0=0, y0=0, x1=0, y1=0):
     plt.show()
 
 #
-# draw plane
+# draws a plane
 #
 def plane(pos=(0, 0), len=0, angle=0, lw=LW, wide=1):
     x = pos[0]
@@ -114,7 +132,7 @@ def plane(pos=(0, 0), len=0, angle=0, lw=LW, wide=1):
     return push_object('plane', x, y + wide, len, wide, angle)
 
 #
-# draw box
+# draws a box
 #
 def box(pos, text="", lw=LW, xlen=5, ylen=3, angle=0, textpos=(0, 0)):
     x = pos[0]
@@ -135,7 +153,7 @@ def box(pos, text="", lw=LW, xlen=5, ylen=3, angle=0, textpos=(0, 0)):
     return push_object("box", x, y + ylen, xlen, ylen, angle)
 
 #
-# draw arrow and its naming
+# draws an arrow and its naming
 #
 def arrow(pos, len=5, lw=LW, text="", angle=0, hw=0.3, textpos=(0, 0)):
     x = pos[0]
@@ -150,6 +168,30 @@ def arrow(pos, len=5, lw=LW, text="", angle=0, hw=0.3, textpos=(0, 0)):
     plt.arrow(x, y, xl, yl, fc='k', lw=lw, head_width=hw)
     ax.text(x + xl + textpos[0], y + yl + 0.5 + textpos[1], text, ha='right')
     return push_object("arrow", x, y, len, lw, angle)
+
+#
+# draws a wedge
+#
+def wedge(pos, len=5, angle=0, wedge_angle=30, lw=LW):
+    x = pos[0]
+    y = pos[1]
+    if(pos.__len__() > 2):
+        angle = pos[2]
+
+    r1 = torad(angle)
+    r2 = torad(angle + wedge_angle)
+
+    lx = len * cos(r2)
+
+    x1 = x + cos(r1) * lx
+    y1 = y + sin(r1) * lx
+
+    x2 = x + cos(r2) * len
+    y2 = y + sin(r2) * len
+
+    plt.gca().add_patch(plt.Polygon([(x, y), (x1, y1), (x2, y2)], \
+        color=COLOR, lw=lw, ls='-', ec='black'))
+    return push_object("wedge", x, y2, abs(x - x2), abs(y - y2), angle + wedge_angle)
 
 #
 # function, used by library for rope
@@ -175,7 +217,7 @@ def rope2(a, b, lw=LW):
         '-k', lw=lw, zorder=1)
 
 #
-# draw a line between pairs of objects
+# draw a line between each pair of objects
 #
 def rope(*L, lw=LW):
     for i in range(len(L) - 1):
@@ -197,7 +239,7 @@ def margin(obj, x=0, y=0, absolute=True):
 
 
     x1 += x * cos(r)
-    y1 -= y * cos(r)
+    y1 += y * cos(r)
     x1 += y * sin(r)
     y1 += x * sin(r)
     
