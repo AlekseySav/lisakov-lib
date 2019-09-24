@@ -1,14 +1,12 @@
 #
-# lisakov lib
-#
-# Copyright blablabla ...
+# School physics plot lib
 #
 
 from sys import stderr
 from math import sin, cos, pi
 from matplotlib import pyplot as plt
 from matplotlib.patches import Rectangle, Polygon
-from matplotlib import rcParams
+from matplotlib import rc, rcParams
 
 # consts
 LW = 3
@@ -27,8 +25,8 @@ def torad(_D):
 # die - noreturn print error function
 #
 def die(err):
-    #stderr.write("Lisacov-lib: fatal error: %s\n" % err)
-    stderr.write("Lisacov-lib: \033[1;31mfatal error: \033[0m%s\n" % err)
+    #stderr.write("Lisakov-lib: fatal error: %s\n" % err)
+    stderr.write("Lisakov-lib: \033[1;31mfatal error: \033[0m%s\n" % err)
     exit(1)
 
 #
@@ -72,6 +70,7 @@ def get_angle(i) -> float:
 def init(fs=15):
     global ax
     rcParams['font.size'] = fs
+    rc('text', usetex=True)
     (_, ax) = plt.subplots()
 
 #
@@ -159,7 +158,7 @@ def arrow(pos, len=5, lw=LW, text="", angle=0, hw=0.3, textpos=(0, 0)):
     x = pos[0]
     y = pos[1]
     if(pos.__len__() > 2):
-        angle = pos[2]
+        angle += pos[2]
 
     r = torad(angle)
     xl = len * cos(r)

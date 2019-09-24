@@ -1,0 +1,8 @@
+1. Add default parameters to all the functions.
+2. Add possibility to rotate text
+3. Add possibility to position text outside of the box (left, right, top, bottom)
+4. Rope must be parallel to the wedge's plane (with different box sizes too)
+5. If all the boxes have the same height, rope should pass through the middle of the boxes.
+6. Add pulley and another box around it (vertical rope)
+7. Forces should be visible through the boxes and start from center
+8. Fix bugs
